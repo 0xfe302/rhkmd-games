@@ -1,0 +1,8 @@
+[package]
+name = "wasm_dot_game"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = {version = "0.15", features = ["jpeg"] }
+uuid = { version = "1.13.2", features = ["js"] }
