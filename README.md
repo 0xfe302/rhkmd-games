@@ -12,7 +12,7 @@ rustup target add wasm32-unknown-unknown
 cargo install wasm-server-runner
 ```
 
-## run
+## run one of the test games in their directory
 ```
 cargo run --target wasm32-unknown-unknown
 ```
