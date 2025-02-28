@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 #![allow(unused)]
-
+use bevy::window::{WindowResolution, PresentMode};
 use bevy::window::PrimaryWindow;
 use bevy::input::mouse::MouseButton;
 use bevy::core_pipeline::{
@@ -36,10 +36,23 @@ struct GroundCoords {
 
 
 fn main() {
+    let primary_window = Window {
+        title: "Bevy game".into(),
+        resizable: false,
+        resolution: WindowResolution::new(700., 1400.).with_scale_factor_override(1.0),
+        //canvas: Some("#bevy".to_owned()),
+        //desired_maximum_frame_latency: core::num::NonZero::new(1u32),
+        //present_mode: PresentMode::AutoNoVsync, // Reduces input lag.
+        fit_canvas_to_parent: true,
+        ..default()
+    };
     App::new()
-        .insert_resource(AmbientLight::NONE)
-        .insert_resource(ClearColor(Color::BLACK))
-        .add_plugins(DefaultPlugins)
+        // .insert_resource(AmbientLight::NONE)
+        // .insert_resource(ClearColor(Color::BLACK))
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(primary_window),
+            ..default()
+        }))
         // .add_plugins(DefaultPickingPlugins)
         .add_systems(Startup, setup)
         // .add_system(player1_movement)
@@ -198,7 +211,7 @@ pub fn player_movement(
     let mut cam = q_cam.single_mut();
     // let mut direction = pos.looking_at(tar.pos.translation, Vec3::Y).forward();
 
-    pos.translation = pos.translation.move_towards(tar.pos.translation, 0.3);
+    pos.translation = pos.translation.move_towards(tar.pos.translation, 0.5);
 
     // if pos.translation.distance(tar.pos.translation) > 1.0 {
     //     pos.translation += direction * 1.0;

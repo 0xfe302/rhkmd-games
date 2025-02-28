@@ -17,7 +17,6 @@ use crate::utils::random_number;
 
 use crate::camera::MainCamera;
 
-
 // Component to identify Player
 #[derive(Component)]
 struct Player;
@@ -50,7 +49,7 @@ pub(super) fn plugin(app: &mut App) {
     // Your game logic here
     app
     // .insert_resource(AmbientLight::NONE)
-    .insert_resource(ClearColor(Color::BLACK))
+    // .insert_resource(ClearColor(Color::BLACK))
     //.add_plugins(DefaultPlugins)
     // .add_plugins(DefaultPickingPlugins)
     .add_systems(Startup, setup)
@@ -84,7 +83,7 @@ fn setup(
         ..default()
     });
 
-    // pillars
+    // // pillars
     // for (x, z) in &[(-1.5, -1.5), (1.5, -1.5), (1.5, 1.5), (-1.5, 1.5)] {
     //     commands.spawn((
     //         // RigidBody::Dynamic,
@@ -95,24 +94,24 @@ fn setup(
     //     ));
     // }
 
-    for n in 1..1000 {
-        let val = n as f32;
+    // for n in 1..1000 {
+    //     let val = n as f32;
 
-        commands.spawn((
-            RigidBody::Kinematic,
-            Collider::sphere(0.5),
-            Mesh3d(meshes.add(Sphere::new(0.5))),
-            MeshMaterial3d(materials.add(Color::srgb(4.25, 7.4, 7.1))),
-            Transform::from_xyz(-3.0 * val, 0., -8.0),
-        ));
-        commands.spawn((
-            RigidBody::Kinematic,
-            Collider::sphere(0.5),
-            Mesh3d(meshes.add(Sphere::new(0.5))),
-            MeshMaterial3d(materials.add(Color::srgb(4.25, 7.4, 7.1))),
-            Transform::from_xyz(-3.0 * val, 0., 8.0),
-        ));
-    }
+    //     commands.spawn((
+    //         // RigidBody::Kinematic,
+    //         // Collider::sphere(0.5),
+    //         Mesh3d(meshes.add(Sphere::new(0.5))),
+    //         MeshMaterial3d(materials.add(Color::srgb(4.25, 7.4, 7.1))),
+    //         Transform::from_xyz(-3.0 * val, 0., -7.0),
+    //     ));
+    //     commands.spawn((
+    //         // RigidBody::Kinematic,
+    //         // Collider::sphere(0.5),
+    //         Mesh3d(meshes.add(Sphere::new(0.5))),
+    //         MeshMaterial3d(materials.add(Color::srgb(4.25, 7.4, 7.1))),
+    //         Transform::from_xyz(-3.0 * val, 0., 7.0),
+    //     ));
+    // }
 
  
     commands.spawn((
@@ -120,24 +119,25 @@ fn setup(
         Mesh3d(meshes.add(Plane3d::default().mesh().size(WORLD_SIZE, WORLD_SIZE))),
         MeshMaterial3d(stone.clone()),
         // Visibility::Hidden,
-        RigidBody::Static,
-        Collider::cuboid(WORLD_SIZE, 0.1, WORLD_SIZE),
+        // RigidBody::Static,
+        // Collider::cuboid(WORLD_SIZE, 0.1, WORLD_SIZE),
         PickingBehavior::IGNORE,
         //On::<Pointer<Move>>::run(change_hue_with_vertical_move),
     ));
 
-    // commands.spawn((
-    //     DirectionalLight::default(),
-    //     Transform::from_translation(Vec3::ONE).looking_at(Vec3::ZERO, Vec3::Y),
-    // ));
+    // // commands.spawn((
+    // //     DirectionalLight::default(),
+    // //     Transform::from_translation(Vec3::ONE).looking_at(Vec3::ZERO, Vec3::Y),
+    // // ));
 
-    commands.spawn((
-        RigidBody::Dynamic,
-        Collider::sphere(0.5),
-        Mesh3d(meshes.add(Sphere::new(0.5))),
-        MeshMaterial3d(materials.add(Color::srgb(6.25, 9.4, 9.1))),
-        Transform::from_xyz(-10.0, 0.0, -10.0),
-    ));
+    // commands.spawn((
+    //     // RigidBody::Dynamic,
+    //     // Collider::sphere(0.5),
+    //     Mesh3d(meshes.add(Sphere::new(0.5))),
+    //     MeshMaterial3d(materials.add(Color::srgb(6.25, 9.4, 9.1))),
+    //     Transform::from_xyz(-10.0, 0.0, -10.0),
+    //     LinearVelocity(Vec3{x: -1.0, y: 0., z: 0.}),
+    // ));
 
     // Spawn player
     commands.spawn((
@@ -154,8 +154,8 @@ fn setup(
             // alpha_mode: AlphaMode::Blend,
             ..default()
         })),
-        RigidBody::Kinematic,
-        Collider::sphere(0.2),
+        // RigidBody::Kinematic,
+        // Collider::sphere(0.2),
         //Collider::capsule(0.5, 1.5),
         Transform::from_xyz(0.0, 10.0, 0.0),
         LinearVelocity(Vec3{x: -10.0, y: 0.0, z: 0.0}),
@@ -184,42 +184,42 @@ fn setup(
         //     Bloom::default(),           // 3. Enable bloom for the camera
         // ));
         parent.spawn((
-            RigidBody::Kinematic,
-            Collider::sphere(0.5),
+            // RigidBody::Kinematic,
+            // Collider::sphere(0.5),
             Mesh3d(meshes.add(Sphere::new(0.5))),
             MeshMaterial3d(materials.add(Color::srgb(4.25, 7.4, 7.1))),
             Transform::from_xyz(-3.0, 0., 0.0),
         ));
         parent.spawn((
-            RigidBody::Kinematic,
-            Collider::sphere(0.5),
+            // RigidBody::Kinematic,
+            // Collider::sphere(0.5),
             Mesh3d(meshes.add(Sphere::new(0.5))),
             MeshMaterial3d(materials.add(Color::srgb(4.25, 7.4, 7.1))),
             Transform::from_xyz(3.0, 0., 0.0),
         ));
 
-        // parent.spawn((
-        //     PointLight {
-        //         //color: Color::srgb(6.25, 9.4, 9.1),
-        //         shadows_enabled: true,
-        //         ..default()
-        //     },
-        //     //Transform::from_translation(Vec3::ONE).looking_at(Vec3::ZERO, Vec3::Y),
-        // ));
-        // parent.spawn((
-        //     Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
-        //     MeshMaterial3d(materials.add(Color::srgb(6.25, 9.4, 9.1))),
-        //     // Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
-        //     // MeshMaterial3d(materials.add(StandardMaterial {
-        //     //     base_color: Color::srgb(6.25, 9.4, 9.1),
-        //     //     //reflectance: 1.0,
-        //     //     emissive: LinearRgba::rgb(6.25, 90.4, 90.1),
-        //     //     // perceptual_roughness: 0.0,
-        //     //     // metallic: 0.5,
-        //     //     // alpha_mode: AlphaMode::Blend,
-        //     //     ..default()
-        //     // })),
-        // ));
+    //     // parent.spawn((
+    //     //     PointLight {
+    //     //         //color: Color::srgb(6.25, 9.4, 9.1),
+    //     //         shadows_enabled: true,
+    //     //         ..default()
+    //     //     },
+    //     //     //Transform::from_translation(Vec3::ONE).looking_at(Vec3::ZERO, Vec3::Y),
+    //     // ));
+    //     // parent.spawn((
+    //     //     Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
+    //     //     MeshMaterial3d(materials.add(Color::srgb(6.25, 9.4, 9.1))),
+    //     //     // Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
+    //     //     // MeshMaterial3d(materials.add(StandardMaterial {
+    //     //     //     base_color: Color::srgb(6.25, 9.4, 9.1),
+    //     //     //     //reflectance: 1.0,
+    //     //     //     emissive: LinearRgba::rgb(6.25, 90.4, 90.1),
+    //     //     //     // perceptual_roughness: 0.0,
+    //     //     //     // metallic: 0.5,
+    //     //     //     // alpha_mode: AlphaMode::Blend,
+    //     //     //     ..default()
+    //     //     // })),
+    //     // ));
     });
 }
 
@@ -300,7 +300,7 @@ fn player_movement(
     let mut cam = q_cam.single_mut();
     // let mut direction = pos.looking_at(tar.pos.translation, Vec3::Y).forward();
 
-    // pos.translation = pos.translation.move_towards(tar.pos.translation, 0.4);
+    pos.translation = pos.translation.move_towards(tar.pos.translation, 0.4);
 
     // if pos.translation.distance(tar.pos.translation) > 1.0 {
     //     pos.translation += direction * 1.0;

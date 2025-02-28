@@ -1,7 +1,5 @@
 # avian physics test
 
-This repo is a minimal starter for Bevy `0.15`
-
 ## setup
 ```
 cargo install --locked trunk

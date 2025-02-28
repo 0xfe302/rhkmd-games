@@ -18,10 +18,10 @@ fn initialize_camera(mut commands: Commands) {
     commands.spawn((    
         MainCamera,
         Camera3d::default(),
-        Camera {
-            hdr: true,
-            ..default()
-        },
+        // Camera {
+        //     hdr: true,
+        //     ..default()
+        // },
         // DistanceFog {
         //     color: Color::srgb(0.0, 0.0, 0.0),
         //     falloff: FogFalloff::Linear {
@@ -32,7 +32,7 @@ fn initialize_camera(mut commands: Commands) {
         // },
         //Transform::from_xyz(0.0, 0.5, 20.0).looking_at(Vec3::ZERO.with_y(0.5), Vec3::Y),
         Transform::from_xyz(20.0, 20.0, 0.0).looking_at(Vec3::new(-8., 1., 0.), Vec3::Y),
-        Tonemapping::TonyMcMapface, // 2. Using a tonemapper that desaturates to white is recommended
-        Bloom::default(),           // 3. Enable bloom for the camera
+        // Tonemapping::TonyMcMapface, // 2. Using a tonemapper that desaturates to white is recommended
+        // Bloom::default(),           // 3. Enable bloom for the camera
     ));
 }
