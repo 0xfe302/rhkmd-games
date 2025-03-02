@@ -1,4 +1,7 @@
 
+#![allow(unused)]
+#![allow(deadcode)]
+
 use bevy::window::{WindowResolution, PresentMode};
 use bevy::window::PrimaryWindow;
 use bevy::input::mouse::MouseButton;
@@ -24,7 +27,7 @@ struct MovementTarget {
 }
 
 #[derive(Component)]
-struct PredictedSpot;
+struct Prediction;
 
 #[derive(Component)]
 struct Countdown(Timer);
@@ -33,21 +36,33 @@ struct Countdown(Timer);
 struct Ground;
 
 #[derive(Component)]
-struct GroundCoords {
-    global: Vec3, // world-space coords
-    local: Vec2, // relative to ground
-}
+struct ScoreLine;
 
-fn prediction_made() -> impl Condition<()> {
-    Entities::contains(self,Countdown)
-}
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Default, States)]
+enum AppState {
+    #[default]
+    InGame,
+    MovingEndCam,
+    DrawingScoreLine,
+    End,
+} 
+
+// fn prediction_made() -> impl Condition<()> {
+//     Entities::contains(&self,Countdown)
+//     Entities::contains(&self, entity)
+// }
 
 pub(super) fn plugin(app: &mut App) {
     // Your game logic here
     app
+    .init_state::<AppState>()
     .add_systems(Startup, setup)
-    .add_systems(Update,player_movement)
-    .add_systems(Update,mouse_click.run_if(prediction_made()));
+    .add_systems(Update,player_movement.run_if(in_state(AppState::InGame)))
+    .add_systems(Update,mouse_click.run_if(not(any_with_component::<Prediction>)))
+    .add_systems(FixedUpdate,(tick_countdown, detect_stop).run_if(any_with_component::<Prediction>.and(in_state(AppState::InGame))))
+    .add_systems(Update, move_camera_to_prediction.run_if(in_state(AppState::MovingEndCam)))
+    .add_systems(Update, draw_score_line.run_if(in_state(AppState::DrawingScoreLine)));
+    //.add_systems(Update, calc_score.run_if(in_state(AppState::End)))
 }
 
 fn setup(
@@ -97,7 +112,7 @@ pub fn mouse_click(
     // mut coords: ResMut<GroundCoords>,
     mouse: Res<ButtonInput<MouseButton>>,
     q_window: Query<&Window, With<PrimaryWindow>>,
-    q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+    q_camera: Query<(&Camera, &GlobalTransform, Entity), With<MainCamera>>,
     q_ground: Query<&GlobalTransform, With<Ground>>,
     touches: Res<Touches>,
     mut q_move_target: Query<&mut MovementTarget, With<Player>>,
@@ -106,7 +121,7 @@ pub fn mouse_click(
 {
     // TODO look at bevy_mod_picking
     let window = q_window.single();
-    let (camera, camera_transform) = q_camera.single();
+    let (camera, camera_transform, camera_entity) = q_camera.single();
     let ground = q_ground.single();
     let mut move_target = q_move_target.single_mut();
 
@@ -136,7 +151,7 @@ pub fn mouse_click(
         move_target.pos.translation.x = local_cursor.x;
         move_target.pos.translation.z = local_cursor.z;
         commands.spawn((
-            PredictedSpot,
+            Prediction,
             //Mesh3d(meshes.add(Circle::new(0.5))),
             MeshMaterial3d(materials.add(Color::srgb(9.25, 6.4, 6.1))), 
             Mesh3d(meshes.add(Sphere::new(0.2))),
@@ -144,7 +159,8 @@ pub fn mouse_click(
             Transform::from_translation(move_target.pos.translation),
         ));
 
-        commands.spawn(Countdown(Timer::from_seconds(2.0, TimerMode::Once)));
+        commands.spawn(Countdown(Timer::from_seconds(1.0, TimerMode::Once)));
+        commands.entity(camera_entity).remove_parent_in_place();
     }
 }
 
@@ -152,7 +168,7 @@ pub fn player_movement(
     mut q_pos: Query<&mut Transform, With<Player>>,
     q_tar: Query<&MovementTarget, With<Player>>,
     mut q_cam: Query<&mut Transform, (With<MainCamera>, Without<Player>)>,
-    time: Res<Time>,
+    // time: Res<Time>,
 )
 {
     let mut pos = q_pos.single_mut();
@@ -166,14 +182,77 @@ pub fn player_movement(
 
 }
 
-pub fn tick_timer(
+pub fn tick_countdown(
     mut q_timer: Query<&mut Countdown>,
     time: Res<Time>,
+    mut next_state: ResMut<NextState<AppState>>,
+    current_state: Res<State<AppState>>,
 )
 {
     let mut timer = q_timer.single_mut();
 
     timer.0.tick(time.delta());
 
+    if timer.0.finished() {
+        next_state.set(AppState::MovingEndCam);
+    }
+
+}
+
+fn detect_stop(
+    q_player: Query<&Transform, With<Player>>,
+    q_prediction: Query<&Transform, (With<Prediction>, Without<Player>)>,
+    mut next_state: ResMut<NextState<AppState>>,
+    current_state: Res<State<AppState>>,
+)
+{
+    let player = q_player.single();
+    let prediction = q_prediction.single();
+
+    if player.translation.x <= prediction.translation.x {
+        // STOP
+        // HWO
+        // STATE?
+        // next_state.set(AppState::MovingEndCam);
+
+    }    
+
+}
+
+fn move_camera_to_prediction(
+    q_prediction: Query<&Transform, (With<Prediction>, Without<MainCamera>, Without<Player>)>,
+    q_player: Query<&Transform, (With<Player>, Without<MainCamera>, Without<Prediction>)>,
+    mut q_camera: Query<&mut Transform, (With<MainCamera>, Without<Prediction>, Without<Player>)>,
+    mut next_state: ResMut<NextState<AppState>>,
+    current_state: Res<State<AppState>>,
+)
+{
+
+    
+    let prediction = q_prediction.single();
+    let player = q_player.single();
+
+    let Ok(mut cam) = q_camera.get_single_mut() else {
+        return;
+    };
+    //TODO configure height and how far back
+    let mut midpoint = prediction.translation.midpoint(player.translation).with_y(15.);
+    midpoint.x += 20.;
+
+    let prev_pos = cam.translation;
+    cam.translation = cam.translation.move_towards(midpoint, 0.3);
+
+    if cam.translation == prev_posh {
+
+        next_state.set(AppState::DrawingScoreLine);
+    } 
+}
+
+fn draw_score_line(
+
+    q_prediction: Query<&Transform, (With<Prediction>, Without<Player>)>,
+    q_player: Query<&Transform, (With<Player>, Without<Prediction>)>,
+)
+{
 
 }
