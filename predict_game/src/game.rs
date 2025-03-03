@@ -36,7 +36,10 @@ struct Countdown(Timer);
 struct Ground;
 
 #[derive(Component)]
-struct ScoreLine;
+struct Dot;
+
+#[derive(Component)]
+struct ScoreLinePos;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Default, States)]
 enum AppState {
@@ -85,12 +88,40 @@ fn setup(
         Visibility::Hidden,
     ));
 
+    for n in 1..1000 {
+        let val = n as f32;
+
+        commands.spawn((
+            // RigidBody::Kinematic,
+            // Collider::sphere(0.5),
+            Mesh3d(meshes.add(Sphere::new(0.5))),
+            MeshMaterial3d(materials.add(StandardMaterial {
+                base_color: Color::srgb(4.25, 7.4, 7.1),
+                emissive: LinearRgba::rgb(3.99, 20.32, 2.0),
+                ..default()
+            })), 
+            Transform::from_xyz(-3.0 * val, 0., -7.0),
+        ));
+        commands.spawn((
+            // RigidBody::Kinematic,
+            // Collider::sphere(0.5),
+            Mesh3d(meshes.add(Sphere::new(0.5))),
+            MeshMaterial3d(materials.add(StandardMaterial {
+                base_color: Color::srgb(4.25, 7.4, 7.1),
+                emissive: LinearRgba::rgb(3.99, 20.32, 2.0),
+                ..default()
+            })),
+            Transform::from_xyz(-3.0 * val, 0., 7.0),
+        ));
+    }
+
     // Spawn player
     commands.spawn((
         Player {},
         MovementTarget{pos: Transform::from_translation(Vec3::ZERO)},
-        Mesh3d(meshes.add(Sphere::new(0.2))),
+        Mesh3d(meshes.add(Sphere::new(0.4))),
         MeshMaterial3d(materials.add(StandardMaterial {
+            emissive: LinearRgba::rgb(13.99, 5.32, 2.0),
             ..default()
         })),
     )).with_children(|parent|{
@@ -153,8 +184,13 @@ pub fn mouse_click(
         commands.spawn((
             Prediction,
             //Mesh3d(meshes.add(Circle::new(0.5))),
-            MeshMaterial3d(materials.add(Color::srgb(9.25, 6.4, 6.1))), 
-            Mesh3d(meshes.add(Sphere::new(0.2))),
+            MeshMaterial3d(materials.add(
+                StandardMaterial {
+                    base_color: Color::srgb(9.25, 6.4, 6.1), 
+                    emissive: LinearRgba::rgb(2.0, 5.32, 13.99),
+                    ..default()
+                })),
+            Mesh3d(meshes.add(Sphere::new(0.4))),
             //Transform::from_translation(global_cursor + ground.up() * 0.01).rotate(Quat::from_rotation_arc(Vec3::Z, ground.up().as_vec3())),
             Transform::from_translation(move_target.pos.translation),
         ));
@@ -225,10 +261,9 @@ fn move_camera_to_prediction(
     mut q_camera: Query<&mut Transform, (With<MainCamera>, Without<Prediction>, Without<Player>)>,
     mut next_state: ResMut<NextState<AppState>>,
     current_state: Res<State<AppState>>,
+    mut commands: Commands,
 )
 {
-
-    
     let prediction = q_prediction.single();
     let player = q_player.single();
 
@@ -240,19 +275,47 @@ fn move_camera_to_prediction(
     midpoint.x += 20.;
 
     let prev_pos = cam.translation;
-    cam.translation = cam.translation.move_towards(midpoint, 0.3);
+    cam.translation = cam.translation.move_towards(midpoint, 0.4);
 
-    if cam.translation == prev_posh {
-
+    if cam.translation == prev_pos {
         next_state.set(AppState::DrawingScoreLine);
+        commands.spawn((
+            ScoreLinePos,
+            Transform::from_translation(prediction.translation),
+        ));
     } 
 }
 
 fn draw_score_line(
-
-    q_prediction: Query<&Transform, (With<Prediction>, Without<Player>)>,
-    q_player: Query<&Transform, (With<Player>, Without<Prediction>)>,
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    q_prediction: Query<&Transform, (With<Prediction>, Without<Player>, Without<ScoreLinePos>)>,
+    q_player: Query<&Transform, (With<Player>, Without<Prediction>,Without<ScoreLinePos>)>,
+    mut q_scoreline: Query<&mut Transform, (With<ScoreLinePos>, Without<Prediction>, Without<Player>)>,
+    mut next_state: ResMut<NextState<AppState>>,
+    current_state: Res<State<AppState>>,
 )
 {
+    let prediction = q_prediction.single();
+    let player = q_player.single();
+    let mut scoreline = q_scoreline.single_mut();
 
+    let prev_pos = scoreline.translation;
+    scoreline.translation = scoreline.translation.move_towards(player.translation, 0.6);
+
+    if scoreline.translation != prev_pos {
+        commands.spawn((
+            Mesh3d(meshes.add(Cuboid::new(0.2, 0.1, 0.2))),
+            MeshMaterial3d(materials.add(StandardMaterial {
+                base_color: Color::srgb(30., 1., 15.), //Srgba::hex("28221B").unwrap().into(),
+                emissive: LinearRgba::rgb(30.99, 1.32, 15.0),
+                //perceptual_roughness: 1.0,
+                ..default()
+            })),
+            Transform::from_translation(scoreline.translation),
+        ));
+    } else {
+        next_state.set(AppState::End);
+    }
 }
